@@ -1,42 +1,58 @@
-'use strict';
+"use strict";
 
-const Controller = require('egg').Controller;
-const fs = require('fs');
-const path = require('path');
+const Controller = require("egg").Controller;
+const fs = require("fs");
+const path = require("path");
+const pump = require('mz-modules/pump');
 
-// eslint-disable-next-line no-unused-vars
-const DocConverter = require('../utils/doc-converter');
-const dc = new DocConverter();
-const word2pdf = require('word2pdf');
 
-const doctpl = fs.readFileSync(path.resolve(__dirname, '../public/doc/template.doc'), 'binary');
+const conf = require("../config");
+const DocConverter = require("../utils/doc-converter"); //文档转化器
+
+// 模版二进制流
+const doctpl = fs.readFileSync(
+  path.resolve(__dirname, conf.TEMPLATE_PATH),
+  "binary"
+);
+
+const dc = new DocConverter(doctpl);
+
+
 
 class HomeController extends Controller {
+  // 首页路由
   async index() {
-    const { ctx } = this;
-    let formField = [{
-      key: 'name',
-      name: '姓名',
-      value: '',
-    },
-    {
-      key: 'age',
-      name: '年龄',
-      value: '',
-    },
-    ];
-    formField = JSON.stringify(formField);
-    await this.ctx.render('main.vue', { formField });
+    await this.ctx.render('main.vue', {
+      FORM_FILED: JSON.stringify(conf.FORM_FILED)
+    });
   }
 
-  async print() {
+  // 打印表单路由
+  async printForm() {
     const printMap = this.ctx.request.body;
-    const buf = dc.parse(doctpl, printMap);
-    fs.writeFileSync(path.resolve(__dirname, '../public/doc/target.doc'), buf);
+    updateTargetDoc(printMap);
     this.ctx.body = {
       ok: true,
     };
   }
+  // 上传路由
+  async upload() {
+    const stream = await this.ctx.getFileStream();
+    const filename = encodeURIComponent(stream.fields.name) + path.extname(stream.filename).toLowerCase();
+    const target = path.join(this.config.baseDir, 'app/public/template.doc');
+    const writeStream = fs.createWriteStream(target);
+    await pump(stream, writeStream);
+
+    this.ctx.body = {
+      url: '/public/' + filename
+    }
+  }
+}
+
+
+// 按照模版填充数据
+function updateTargetDoc(printMap) {
+  fs.writeFileSync(path.resolve(__dirname, conf.TARGET_PATH), dc.parse(printMap));
 }
 
 module.exports = HomeController;

@@ -8,13 +8,13 @@ const Docxtemplater = require('docxtemplater');
  *  @function parse 文档转化方法
  */
 class DocCanverter {
-    constructor() {
+    constructor(docTemplateBuffer) {
         this._docParser = new Docxtemplater();
-    }
-
-    parse(docTemplateBuffer, docData) {
         var zip = new JSZip(docTemplateBuffer);
         this._docParser.loadZip(zip);
+    }
+
+    parse(docData) {
 
         this._docParser.setData(docData);
 

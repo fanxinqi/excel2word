@@ -31,6 +31,14 @@ module.exports = appInfo => {
     },
   };
 
+  // 上传配置
+  config.multipart = {
+    fileSize: '50mb',
+    fileExtensions: [
+      '.doc',
+    ]
+  };
+
   // add your user config here
   const userConfig = {
     // myAppName: 'egg',
