@@ -143,7 +143,7 @@ new Vue({
           self.priviewUrl =
             "https://view.officeapps.live.com/op/view.aspx?src=" +
             origin +
-            "/public/doc/target.doc&t=" +
+            "/public/doc/target.doc?t=" +
             now;
         }
       });
